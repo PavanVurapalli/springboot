@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<head>
+  <meta content="dark light" name="color-scheme">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+  <style>
+    body{
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }	 
+		#form {
+		  width: fit-content;  
+		  padding: 20px;
+		  border: 1px solid #ccc;  
+		  border-radius: 5px; 
+		}	
+		input[type="text"],
+		input[type="email"],
+		input[type="number"],
+		input[type="date"] {
+		  width: 100%; 
+		  padding: 10px;
+		  border: 1px solid #ddd;
+		  border-radius: 3px;
+		  box-sizing: border-box;  
+		}
+		input[type="submit"] {
+		  background-color: #4CAF50;
+		  color: white;
+		  padding: 10px 20px;
+		  border: none;
+		  border-radius: 3px;
+		  cursor: pointer; 
+		  margin-left: 80px;
+		}	 
+		input[type="submit"]:hover {
+		  background-color: #45A049;  
+		}
+    #main{
+      display: flex;
+    }
+    table {
+      border-collapse: collapse;
+    }
+
+    th, td {
+      border: 1px solid #dddddd;
+      text-align: center;
+      padding: 8px;
+    }
+    #done{
+		visibility: hidden;
+	}
+  .fa-solid{
+    margin-left: 8px;
+  }
+	</style>
+</head>
+<body>
+  <div id="main">
+    <div id="form">
+      Movie Name:<input type="text" id="movieName" name="movieName"><br><br>
+      Director:<input type="text" id="director" name="director"><br><br>
+      Hero:<input type="text" id="hero" name="hero"><br><br>
+      Heroine:<input type="text" id="heroine" name="heroine"><br><br>
+      Release Year:<input type="text" id="releaseYear" name="releaseYear"><br><br>
+      <input type="submit" value="submit" id="btn" onclick="run(this.value)">
+    </div>
+    <div>
+      <table id="data">
+        <tr>
+          <th>SNO</th>
+          <th>movieName</th>
+          <th>director</th>
+          <th>hero</th>
+          <th>heroine</th>
+          <th>releaseYear</th>
+          <th>Operations</th>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    let data1=[];
+    let data=new XMLHttpRequest();
+    data.open("GET","http://localhost:8080/getData");
+    data.onload = function (){
+    data1=JSON.parse(data.response);
+    checker();
+    };
+    data.send();
+    
+    function checker()
+    {
+      for(let i=0;i<data1.length;i++)
+      {
+        document.getElementById('data').innerHTML+=`
+        <tr id=${data1[i].sno}>
+          <td>${i+1}</td>
+          <td>${data1[i].movieName}</td>
+          <td>${data1[i].director}</td>
+          <td>${data1[i].hero}</td>
+          <td>${data1[i].heroine}</td>
+          <td>${data1[i].releaseYear}</td>
+          <td>
+            <i class="fa-solid fa-pen-to-square" onclick="edit(${data1[i].sno},${i})"></i>
+            <i class="fa-solid fa-trash" onclick="remove(${data1[i].sno})"></i>
+          </td>
+        </tr>
+        `
+      }
+    }
+
+    let sno;
+    function edit(n,n1)
+    {
+      sno=n;
+      document.getElementById('btn').value='edit'
+      document.getElementById('movieName').value=data1[n1].movieName;
+      document.getElementById('director').value=data1[n1].director;
+      document.getElementById('hero').value=data1[n1].hero;
+      document.getElementById('heroine').value=data1[n1].heroine;
+      document.getElementById('releaseYear').value=data1[n1].releaseYear;
+    }
+
+    function run(value)
+    {
+      let movie={
+        "movieName": document.getElementById('movieName').value,
+        "director": document.getElementById('director').value,
+        "hero": document.getElementById('hero').value,
+        "heroine": document.getElementById('heroine').value,
+        "releaseYear": document.getElementById('releaseYear').value
+      }
+      let data=new XMLHttpRequest();
+      if(value==='submit')
+      {
+        data.open("POST",'http://localhost:8080/postData');
+        data.setRequestHeader("Content-Type", "application/json");
+        data.onload = function (){  
+        };
+        data.send(JSON.stringify(movie));
+      }
+      else if(value==='edit')
+      {
+        data.open("PUT",`http://localhost:8080/putData/${sno}`);
+        data.setRequestHeader("Content-Type", "application/json");
+        data.onload = function (){ 
+        };
+        data.send(JSON.stringify(movie));
+      }
+      location.reload();
+    }
+
+    function remove(n)
+    {
+      let data=new XMLHttpRequest();
+      data.open("DELETE",`http://localhost:8080/deleteData/${n}`);
+      data.onload = function (){
+      };
+      data.send();
+      location.reload();
+    }
+  </script>
+</body>
+</html>
